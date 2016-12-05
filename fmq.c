@@ -5,31 +5,29 @@ int main () {
     zsock_t *server = zsock_new_router ("inproc://fmq");
     zsock_t *client = zsock_new_dealer ("inproc://fmq");
 
+    // send a HELLO request
     zmsg_t *msg = zmsg_new ();
     zmsg_addstr (msg, "HELLO");
     zmsg_addstr (msg, "/etc/passwd");
-
     zmsg_send (&msg, client);
-    if (!msg)
-        zsys_debug ("msg == NULL");
 
+    // server - receive the REQUEST
     zmsg_t *msg2 = zmsg_recv (server);
-    
-    zmsg_t *response = zmsg_new ();
-    if (!msg2)
-        zmsg_addstr (response, "ERROR");
-    else
-        zmsg_addstr (response, "READY");
-    zmsg_send (&response, server);
-    if (!response)
-        zsys_debug ("response == NULL");
-    
+    zframe_t *routing_id = zmsg_pop (msg2);
     zmsg_print (msg2);
-
-    char *command = zmsg_popstr (msg2);
-    zsys_info (command);
-    zstr_free (&command);
     zmsg_destroy (&msg2);
+
+    // server response
+    zmsg_t *response = zmsg_new ();
+    zmsg_add (response, routing_id);
+    zmsg_addstr (response, "ERROR");
+    zmsg_send (&response, server);
+
+    // client reads response
+    zsys_debug ("recv on client");
+    zmsg_t *client_response = zmsg_recv (client);
+    zmsg_print (client_response);
+    zmsg_destroy (&client_response);
 
     zsock_destroy (&server);
     zsock_destroy (&client);
