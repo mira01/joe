@@ -3,13 +3,13 @@
 # build ZeroMQ stack and install to /usr/local/
 
 die () {
-    echo "FATAL: $@" >&2
+    echo "FATAL: $*" >&2
     exit 1
 }
 
-touch /usr/local/_test || die "Make /usr/local accessible again (chmod a+rwx)"
+sudo touch /usr/local/_test || die "Make /usr/local accessible again (chmod a+rwx) or set up sudo"
 
-rm /usr/local/_test
+sudo rm /usr/local/_test
 
 for repo in libzmq czmq malamute zyre; do
     if [[ -d "${repo}.git" ]]; then
@@ -24,6 +24,6 @@ for repo in libzmq czmq malamute zyre; do
     ./configure
     make
     make check
-    make install
+    sudo make install
     popd
 done
