@@ -87,9 +87,10 @@ if [ "$BUILD_TYPE" == "default" ]; then
     git clean -f
     git reset --hard HEAD
     (
-        ./autogen.sh 2> /dev/null
-        ./configure --enable-drafts=no "${CONFIG_OPTS[@]}"
-        export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]}" &&
-        make VERBOSE=1 distcheck
+        #./autogen.sh 2> /dev/null
+        #./configure --enable-drafts=no "${CONFIG_OPTS[@]}"
+        #export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]}" && \
+        #make VERBOSE=1 distcheck
+        make prefix=${BUILD_PREFIX} all
     ) || exit 1
 fi

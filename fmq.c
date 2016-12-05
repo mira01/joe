@@ -1,21 +1,5 @@
 #include <czmq.h>
 
-static void makeReady(
-    zmsg_t **msg_,
-    zframe_t* id_) {
-  *msg_ = zmsg_new();
-  zmsg_add(*msg_, id_);
-  zmsg_addstr(*msg_, "READY");
-}
-
-static void makeError(
-    zmsg_t **msg_,
-    zframe_t* id_) {
-  *msg_ = zmsg_new();
-  zmsg_add(*msg_, id_);
-  zmsg_addstr(*msg_, "ERROR");
-}
-
 int main () {
 
     zsys_init();
@@ -23,38 +7,29 @@ int main () {
     zsock_t *server = zsock_new_router ("inproc://fmq");
     zsock_t *client = zsock_new_dealer ("inproc://fmq");
 
+    // send a HELLO request
     zmsg_t *msg = zmsg_new ();
     zmsg_addstr (msg, "HELLO");
     zmsg_addstr (msg, "/etc/passwd");
-
     zmsg_send (&msg, client);
-    if (!msg)
-        zsys_debug ("msg == NULL");
 
+    // server - receive the REQUEST
     zmsg_t *msg2 = zmsg_recv (server);
+    zframe_t *routing_id = zmsg_pop (msg2);
     zmsg_print (msg2);
-    zframe_t* routing_id_ = zmsg_pop(msg2);
-    char *command_ = zmsg_popstr(msg2);
-    zsys_info(command_);
-    zmsg_t *response_;
-    if(strcmp(command_, "HELLO") == 0) {
-      makeReady(&response_, routing_id_);
-    }
-    else
-      makeError(&response_, routing_id_);
-    zmsg_send(&response_, server);
-    zstr_free(command_);
-
-    zmsg_t *msg3_ = zmsg_recv(client);
-    zmsg_print(msg3_);
-    char *id2_ = zmsg_popstr(msg3_);
-    zstr_free(&id2_);
-    char *code_ = zmsg_popstr(msg3_);
-    zsys_info(code_);
-    zstr_free(&code_);
-
-    zstr_free (&command_);
     zmsg_destroy (&msg2);
+
+    // server response
+    zmsg_t *response = zmsg_new ();
+    zmsg_add (response, routing_id);
+    zmsg_addstr (response, "ERROR");
+    zmsg_send (&response, server);
+
+    // client reads response
+    zsys_debug ("recv on client");
+    zmsg_t *client_response = zmsg_recv (client);
+    zmsg_print (client_response);
+    zmsg_destroy (&client_response);
 
     zsock_destroy (&server);
     zsock_destroy (&client);

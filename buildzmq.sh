@@ -11,7 +11,8 @@ sudo touch /usr/local/_test || die "Make /usr/local accessible again (chmod a+rw
 
 sudo rm /usr/local/_test
 
-for repo in libzmq czmq malamute zyre; do
+REPOS="libzmq czmq malamute zyre"
+for repo in $REPOS ; do
     if [[ -d "${repo}.git" ]]; then
         pushd "${repo}.git"
         git pull
@@ -19,11 +20,12 @@ for repo in libzmq czmq malamute zyre; do
     else
         git clone https://github.com/zeromq/${repo} "${repo}.git" || die "git clone failed"
     fi
+#    pushd "${repo}.git" &&    git clean -fxd && \
     pushd "${repo}.git" && \
     ./autogen.sh && \
-    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure && \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure --with-docs=no && \
     make && \
-    make check && \
-    sudo make install || die "Failed to build and install ZeroQ component ${repo}"
+    make ZMQ_DISABLE_TEST_TIMEOUT=1 check && \
+    sudo make install || die "Failed to build and install ZeroMQ component '${repo}'"
     popd
 done
