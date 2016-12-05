@@ -41,7 +41,7 @@ endef
 $(foreach PROG,$(PROGS),\
     $(eval $(call memcheck_prog,${PROG})))
 
-memcheck: $(MEMCHECK_PROGS)
+memcheck: all $(MEMCHECK_PROGS)
 
 .PHONY: clean
 clean:
