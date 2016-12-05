@@ -1,7 +1,7 @@
 PROGS = smoketest ondra sc zactor-example miraserver \
     fmq fmqcli fmqsrv \
     echoclient echobara echosrv \
-    vit-spinka-client1 vit-spinka-file-client vit-spinka-file-server
+    vit-spinka-client1 vit-spinka-file-client vit-spinka-file-server vit-spinka-file-zactor
 
 CC = gcc
 CXX= g++
