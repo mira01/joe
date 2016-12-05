@@ -7,6 +7,7 @@ void s_server_actor (zsock_t *pipe, void *args)
     char *name = strdup ((char*) args);
     zsock_t *server = zsock_new_router ("inproc://fmq");
     zpoller_t *poller = zpoller_new (pipe, server, NULL);
+    char *filename = NULL;
 
     // to signal to runtime it should spawn the thread
     zsock_signal (pipe, 0);
@@ -35,7 +36,6 @@ void s_server_actor (zsock_t *pipe, void *args)
             zmsg_t *msg2 = zmsg_recv (server);
             zframe_t *routing_id = zmsg_pop (msg2);
             zmsg_print (msg2);
-            zmsg_destroy (&msg2);
 
             // server response
             zmsg_t *response = zmsg_new ();
@@ -43,13 +43,24 @@ void s_server_actor (zsock_t *pipe, void *args)
 
             int r = rand();
             if (r < RAND_MAX / 5)
-                zmsg_addstr (response, "ERROR"); // we do not like you
-            else
-                zmsg_addstr (response, "READY"); 
+                zmsg_addstr (response, "ERROR Server not ready"); // we are not ready
+            else {
+                char *command = zmsg_popstr (msg2);
+                if (!streq (command, "HELLO"))
+                    zmsg_addstr (response, "ERROR Protocol error: expecting HELLO");
+                else {
+                    filename = zmsg_popstr (msg2);
+                    zmsg_addstr (response, "READY");
+                }
+                zstr_free (&command);
+            }
+
+            zmsg_destroy (&msg2);
             zmsg_send (&response, server);
         }
     }
 
+    zstr_free (&filename);
     zpoller_destroy (&poller);
     zsock_destroy (&server);
     zstr_free (&name);
@@ -93,6 +104,15 @@ void s_client_actor (zsock_t *pipe, void *args)
         else if (which == client) {
             zsys_debug ("recv on client");
             zmsg_t *client_response = zmsg_recv (client);
+            char *command = zmsg_popstr (client_response);
+            if (!streq (command, "READY")) {
+                zsys_error ("Server not ready. Aborting...");
+                zstr_free (&command);
+                zmsg_print (client_response);
+                zmsg_destroy (&client_response);
+                break;
+            }
+            zstr_free (&command);
             zmsg_print (client_response);
             zmsg_destroy (&client_response);
         }
