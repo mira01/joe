@@ -1,7 +1,13 @@
-PROGS = smoketest vit-spinka-client1 echo-client ondra
+PROGS = smoketest vit-spinka-client1 echoclient ondra echobara echosrv fmq
 
-CFLAGS = -I/usr/local/include -std=c99
-CXXFLAGS = -I/usr/local/include -std=c99
-LDFLAGS = -L/usr/local/lib -lczmq -lzmq -lmlm
+CC = gcc
+CXX= g++
+prefix ?= /usr/local
+CFLAGS = -I$(prefix)/include -std=c99
+CXXFLAGS = -I$(prefix)/include -std=c99
+LDFLAGS = -L$(prefix)/lib -R$(prefix)/lib -lczmq -lzmq -lmlm
 
 all: $(PROGS)
+
+clean:
+	rm -f *.o $(PROGS)
