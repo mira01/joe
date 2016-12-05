@@ -2,6 +2,8 @@
 
 int main () {
 
+    zsys_init();
+
     zsock_t *server = zsock_new_router ("inproc://fmq");
     zsock_t *client = zsock_new_dealer ("inproc://fmq");
 
