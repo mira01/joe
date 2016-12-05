@@ -8,6 +8,7 @@ void s_server_actor (zsock_t *pipe, void *args)
     zsock_t *server = zsock_new_router ("inproc://fmq");
     zpoller_t *poller = zpoller_new (pipe, server, NULL);
     char *filename = NULL;
+    int state = 0;
 
     // to signal to runtime it should spawn the thread
     zsock_signal (pipe, 0);
@@ -46,11 +47,14 @@ void s_server_actor (zsock_t *pipe, void *args)
                 zmsg_addstr (response, "ERROR Server not ready"); // we are not ready
             else {
                 char *command = zmsg_popstr (msg2);
-                if (!streq (command, "HELLO"))
-                    zmsg_addstr (response, "ERROR Protocol error: expecting HELLO");
-                else {
-                    filename = zmsg_popstr (msg2);
-                    zmsg_addstr (response, "READY");
+                if (state == 0) {
+                    if (!streq (command, "HELLO"))
+                        zmsg_addstr (response, "ERROR Protocol error: expecting HELLO");
+                    else {
+                        state == 1;
+                        filename = zmsg_popstr (msg2);
+                        zmsg_addstr (response, "READY");
+                    }
                 }
                 zstr_free (&command);
             }
@@ -72,6 +76,7 @@ void s_client_actor (zsock_t *pipe, void *args)
     char *name = strdup ((char*) args);
     zsock_t *client = zsock_new_dealer ("inproc://fmq");
     zpoller_t *poller = zpoller_new (pipe, client, NULL);
+    int state = 0;
 
     // to signal to runtime it should spawn the thread
     zsock_signal (pipe, 0);
@@ -83,6 +88,7 @@ void s_client_actor (zsock_t *pipe, void *args)
         zmsg_addstr (msg, "HELLO");
         zmsg_addstr (msg, "/etc/passwd");
         zmsg_send (&msg, client);
+        state = 1;
 
         void *which = zpoller_wait (poller, -1);
 
@@ -105,16 +111,20 @@ void s_client_actor (zsock_t *pipe, void *args)
             zsys_debug ("recv on client");
             zmsg_t *client_response = zmsg_recv (client);
             char *command = zmsg_popstr (client_response);
-            if (!streq (command, "READY")) {
-                zsys_error ("Server not ready. Aborting...");
+            if (state == 1) {
+                if (!streq (command, "READY")) {
+                    zsys_error ("Server not ready. Aborting...");
+                    zstr_free (&command);
+                    zmsg_print (client_response);
+                    zmsg_destroy (&client_response);
+                    break;
+                }
+                state = 2;
+                //TODO: start sending the file
                 zstr_free (&command);
                 zmsg_print (client_response);
                 zmsg_destroy (&client_response);
-                break;
             }
-            zstr_free (&command);
-            zmsg_print (client_response);
-            zmsg_destroy (&client_response);
         }
     }
 
