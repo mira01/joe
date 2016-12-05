@@ -1,4 +1,4 @@
-PROGS = smoketest vit-spinka-client1 echoclient ondra
+PROGS = smoketest vit-spinka-client1 echoclient ondra echobara echosrv fmq
 
 CC = gcc
 CXX= g++
