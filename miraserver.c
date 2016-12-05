@@ -15,11 +15,11 @@ int main(){
     while(!zsys_interrupted){
         // server - receive the REQUEST
         zmsg_t *msg = zmsg_recv (server);
+        zmsg_print (msg);
         zframe_t *routing_id = zmsg_pop (msg);
         char *hello = zmsg_popstr (msg);
         char *filename = zmsg_popstr (msg);
         
-        zmsg_print (msg);
 
         if (streq(hello, "HELLO")){
             zmsg_t *response = zmsg_new ();
