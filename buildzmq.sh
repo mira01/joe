@@ -21,7 +21,7 @@ for repo in libzmq czmq malamute zyre; do
     fi
     pushd "${repo}.git" && \
     ./autogen.sh && \
-    ./configure && \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure && \
     make && \
     make check && \
     sudo make install || die "Failed to build and install ZeroQ component ${repo}"
