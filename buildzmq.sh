@@ -19,11 +19,11 @@ for repo in libzmq czmq malamute zyre; do
     else
         git clone https://github.com/zeromq/${repo} "${repo}.git" || die "git clone failed"
     fi
-    pushd "${repo}.git"
-    ./autogen.sh
-    ./configure
-    make
-    make check
-    sudo make install
+    pushd "${repo}.git" && \
+    ./autogen.sh && \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure && \
+    make && \
+    make check && \
+    sudo make install || die "Failed to build and install ZeroQ component ${repo}"
     popd
 done
