@@ -29,6 +29,20 @@ $(foreach PROG,$(PROGS),\
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+MEMCHECK_PROGS =
+define memcheck_prog =
+$(eval MEMCHECK_PROGS += memcheck-$(1))
+memcheck-$(1): $(1)
+	$$(LIBTOOL) --mode=execute valgrind --tool=memcheck \
+		--leak-check=full --show-reachable=yes --error-exitcode=1 \
+		./$$<
+endef
+
+$(foreach PROG,$(PROGS),\
+    $(eval $(call memcheck_prog,${PROG})))
+
+memcheck: $(MEMCHECK_PROGS)
+
 .PHONY: clean
 clean:
 	rm -f *.o $(PROGS)
