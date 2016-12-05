@@ -14,6 +14,16 @@ int main () {
         zsys_debug ("msg == NULL");
 
     zmsg_t *msg2 = zmsg_recv (server);
+    
+    zmsg_t *response = zmsg_new ();
+    if (!msg2)
+        zmsg_addstr (response, "ERROR");
+    else
+        zmsg_addstr (response, "READY");
+    zmsg_send (&response, server);
+    if (!response)
+        zsys_debug ("response == NULL");
+    
     zmsg_print (msg2);
 
     char *command = zmsg_popstr (msg2);
