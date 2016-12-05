@@ -1,7 +1,7 @@
 PROGS = smoketest ondra sc zactor-example miraserver \
     fmq fmqcli fmqsrv \
     echoclient echobara echosrv \
-    vit-spinka-client1 vit-spinka-file-client vit-spinka-file-server
+    vit-spinka-client1 vit-spinka-file-client vit-spinka-file-server vit-spinka-file-zactor
 
 CC = gcc
 CXX= g++
@@ -29,6 +29,20 @@ $(foreach PROG,$(PROGS),\
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+MEMCHECK_PROGS =
+define memcheck_prog =
+$(eval MEMCHECK_PROGS += memcheck-$(1))
+memcheck-$(1): $(1)
+	$$(LIBTOOL) --mode=execute valgrind --tool=memcheck \
+		--leak-check=full --show-reachable=yes --error-exitcode=1 \
+		./$$<
+endef
+
+$(foreach PROG,$(PROGS),\
+    $(eval $(call memcheck_prog,${PROG})))
+
+memcheck: all $(MEMCHECK_PROGS)
+
 .PHONY: clean
 clean:
-	rm -f *.o $(PROGS)
+	rm -f *.o $(PROGS) vgcore*
