@@ -7,8 +7,8 @@ CC = gcc
 CXX= g++
 LD = ld
 prefix ?= /usr/local
-CFLAGS = -I$(prefix)/include -std=c99
-CXXFLAGS = -I$(prefix)/include -std=c++99
+CFLAGS = -I$(prefix)/include -std=c99 -D__EXTENSIONS__
+CXXFLAGS = -I$(prefix)/include -std=c++99 -D__EXTENSIONS__
 LIBS = -lczmq -lzmq -lmlm
 LDFLAGS = -lc --entry main -L$(prefix)/lib
 LDFLAGS_R ?= -R$(prefix)/lib
