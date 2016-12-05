@@ -2,9 +2,10 @@ PROGS = smoketest vit-spinka-client1 echoclient ondra
 
 CC = gcc
 CXX= g++
-CFLAGS = -I/usr/local/include -std=c99
-CXXFLAGS = -I/usr/local/include -std=c99
-LDFLAGS = -L/usr/local/lib -R/usr/local/lib -lczmq -lzmq -lmlm
+prefix ?= /usr/local
+CFLAGS = -I$(prefix)/include -std=c99
+CXXFLAGS = -I$(prefix)/include -std=c99
+LDFLAGS = -L$(prefix)/lib -R$(prefix)/lib -lczmq -lzmq -lmlm
 
 all: $(PROGS)
 
